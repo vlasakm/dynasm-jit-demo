@@ -829,7 +829,7 @@ local function doline(line)
   if g_opt.flushline then wflush() end
 
   -- Assembler line?
-  local indent, aline = match(line, "^(%s*)%|(.*)$")
+  local indent, aline = match(line, "^(%s*)%//|(.*)$")
   if not aline then
     -- No, plain C code line, need to flush first.
     wflush()

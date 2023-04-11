@@ -273,11 +273,11 @@ end
 local function writeexternnames(out, name)
   local t = {}
   for name, n in pairs(map_extern) do t[-n] = name end
-  out:write("static const char *const ", name, "[] = {\n")
+  out:write("static DASM_EXTERN_TYPE ", name, "[] = {\n")
   for i=1,-next_extern-1 do
-    out:write("  \"", t[i], "\",\n")
+    out:write("  DASM_EXTERN_NAME(", t[i], "),\n")
   end
-  out:write("  (const char *)0\n};\n")
+  out:write("  DASM_EXTERN_LAST\n};\n")
 end
 
 ------------------------------------------------------------------------------

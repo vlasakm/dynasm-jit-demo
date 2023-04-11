@@ -142,7 +142,7 @@ void dasm_setup(Dst_DECL, const void *actionlist)
   D->actionlist = (dasm_ActList)actionlist;
   D->status = DASM_S_OK;
   D->section = &D->sections[0];
-  memset((void *)D->lglabels, 0, D->lgsize);
+  if (D->lgsize) memset((void *)D->lglabels, 0, D->lgsize);
   if (D->pclabels) memset((void *)D->pclabels, 0, D->pcsize);
   for (i = 0; i < D->maxsection; i++) {
     D->sections[i].pos = DASM_SEC2POS(i);
