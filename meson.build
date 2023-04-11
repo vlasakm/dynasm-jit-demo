@@ -21,3 +21,12 @@ dynasm = generator(
   output : '@BASENAME@-dasm.c',
   arguments : [meson.current_source_dir() + '/dynasm/dynasm.lua', '-o', '@OUTPUT@', '@INPUT@'],
 )
+
+fast = executable(
+  'demo1',
+  sources: dynasm.process('src/demo1.c'),
+  include_directories: include_directories(
+    'src',
+    'dynasm'
+  ),
+)
