@@ -59,7 +59,7 @@ typedef unsigned int u32;
 // explicitly invalidate the instruction cache for the processor to see the new
 // executable code. This is a noop on x86-64 (otherwise we would also need to
 // consider the issue on other operating systems), but let's hope that just this
-// is enouogh to work on ARM64 based Macs with Rosetta 2.
+// is enough to work on ARM64 based Macs with Rosetta 2.
 #if defined(__APPLE__) && defined(__MACH__)
 #define MAP_JIT_VALUE MAP_JIT
 void sys_icache_invalidate(void *start, size_t len);
@@ -218,7 +218,7 @@ void sys_icache_invalidate(void *start, size_t len);
 //
 // The "encoding time constants", i.e. the C expressions are not put into the
 // action list. First of all, these are C expressions, that dynasm doesn't know
-// much about (it is a simple text based preprecessor), but also naturally these
+// much about (it is a simple text based preprocessor), but also naturally these
 // expressions evaluate to different values at runtime. Instead, the bytecode
 // contains also dynasm instructions, which tell dynasm that for example, now it
 // should take the next expression (passed to `dasm_put` as argument) or that it
@@ -322,8 +322,8 @@ void sys_icache_invalidate(void *start, size_t len);
 
 // In these days of virtual memory, most of the memory we can allocate won't be
 // executable. So we need to allocate our own pages of memory, where we will put
-// our code and make them executable. However, securitywise, having memory which
-// is both writable and executable is far from ideal, so it is better to
+// our code and make them executable. However, security-wise, having memory
+// which is both writable and executable is far from ideal, so it is better to
 // allocate writable pages, put our code into them and then make them
 // executable, but not writable. That way the pages are never both writable and
 // executable at the same time (this is known as W^X and even strictly enforced
@@ -526,7 +526,7 @@ compile(u8 *program, size_t program_len)
 	// route and instead of somehow numbering the instructions from 0 to
 	// the number of instructions (and then figuring out the forward jump
 	// destinations in a second pass), we'll just have a dynamic label for
-	// each _byte_. Then even for foward jumps we are able to calculate
+	// each _byte_. Then even for forward jumps we are able to calculate
 	// their byte offset in the instruction stream, where we will be put an
 	// appropriate dynamic label later, and DynASM will resolve it in its
 	// second pass. Having a label for each _byte_ is potentially
@@ -600,7 +600,7 @@ compile(u8 *program, size_t program_len)
 	// These registers are _callee_ saved (i.!e. the function that called us
 	// expects the values in these registers to be preserved, so we, the
 	// callee, need to preserve the registers by not using them or restoring
-	// them to their orignal values):
+	// them to their original values):
 	//
 	//     rbp ("base pointer")
 	//     rsp ("stack pointer")
@@ -670,7 +670,7 @@ compile(u8 *program, size_t program_len)
 	// the stack, we first need to decrement the stack pointer and then put
 	// the value at the stack pointer position, while to pop we need to
 	// read the value from the current stack pointer and then increment it.
-	// I.e. predecrement push and postincrement pop (we would get another
+	// I.e. pre-decrement push and post-increment pop (we would get another
 	// combination if the stack pointer pointed one past the top of the
 	// stack, or the stack grew upwards). While we have to keep that in
 	// mind, this is what the `push` / `pop` instructions will do for us,
@@ -794,7 +794,7 @@ compile(u8 *program, size_t program_len)
 			// interpreter has to load the constant from bytecode
 			// everytime, this particular `OP_CONSTANT` will always
 			// have this one same operand, so we can just
-			// embed it in the code. The below transltes to `push 4`
+			// embed it in the code. The below translates to `push 4`
 			// if the operand in the instruction stream is
 			// the number 4. This will be pattern matched by DynASM
 			// to be a push of 32 bit immediate (see the unofficial
@@ -826,7 +826,7 @@ compile(u8 *program, size_t program_len)
 			// bit values, the `pop`s and `push`es have to be 64 bit,
 			// but the arithmetic doesn't -- we could just as well
 			// have written `add eax, ecx` to operate on 32 bit
-			// parts of the reigsters (which will zero out the
+			// parts of the registers (which will zero out the
 			// upper 32 bits). It would have save us a byte in the
 			// encoding of the instructions and be slightly faster
 			// in runtime (adding 32 bits is faster than adding 64),
@@ -857,7 +857,7 @@ compile(u8 *program, size_t program_len)
 			// whether it will be close to `printf`!. DynASM has the
 			// capability to handle external names through a
 			// callback which will let us handle that in the
-			// encoding stage where we alreadyd know the
+			// encoding stage where we already know the
 			// destination of our code, but let's not go that far
 			// right now. What we can do is use an _indirect_
 			// through a register - we will store the 64 bit address
@@ -955,7 +955,7 @@ compile(u8 *program, size_t program_len)
 		case OP_GET: {
 			// For `OP_GET` we have a 32 bit immediate operand which
 			// we will have to use as an offset to the top of the
-			// stack. The offset is in number of elemenets, and in
+			// stack. The offset is in number of elements, and in
 			// our case each elements is 8 bytes. Since we load the
 			// both the constant 8 and the operand as well as the
 			// result of their multiplication are runtime known
@@ -972,9 +972,9 @@ compile(u8 *program, size_t program_len)
 			// possible addressings. The trick here is that DynASM
 			// expects to see `[rsp + rax * 8]`, so it isn't
 			// confused by the leading `8 *`. Since `8 * OPERAND()`
-			// is an encoding time constant, an enitrely different
+			// is an encoding time constant, an entirely different
 			// addressing mode will be used `[REG + IMMEDIATE]`.
-			// Eveluating the "constant" before the assembly snippet
+			// Evaluating the "constant" before the assembly snippet
 			// and storing it in a variable would have probably made
 			// it much clearer.
 
@@ -1000,14 +1000,14 @@ compile(u8 *program, size_t program_len)
 		case OP_CMP: {
 			// Here we need to compare two numbers and push a
 			// positive number / negative number / zero as
-			// apropriate. Let's not use setcc, and instead showcase
-			// some local control flow using local labels. Remember,
-			// the "arrows" (`<`, `>`) of local labels point in the
-			// direction where the label is defined, here we refer
-			// to forward labels only. The labels are also purely
-			// based on the order of the instructions - i.e. the
-			// order dasm receives them in, lexical order in the C
-			// source doesn't matter at all.
+			// appropriate. Let's not use setcc, and instead
+			// showcase some local control flow using local labels.
+			// Remember, the "arrows" (`<`, `>`) of local labels
+			// point in the direction where the label is defined,
+			// here we refer to forward labels only. The labels are
+			// also purely based on the order of the instructions,
+			// i.e. the order dasm receives them in, lexical order
+			// in the C source doesn't matter at all.
 
 			//| pop rcx
 			//| pop rax
@@ -1030,12 +1030,12 @@ compile(u8 *program, size_t program_len)
 			// the top of the stack by popping it into a register
 			// and then testing the register with itself. This
 			// effectively compares the register to zero, so we can
-			// use the the "greater than" conditional jump. The
-			// relative byte offset to the destination is encoded in the
-			// instruction stream, so we figure out the (absolute)
-			// byte offset from the beginning, which also is the
-			// index of dynamic label we either already put there,
-			// or will later.
+			// use the "greater than" conditional jump. The relative
+			// byte offset to the destination is encoded in
+			// the instruction stream, so we figure out the
+			// (absolute) byte offset from the beginning, which also
+			// is the index of dynamic label we either already put
+			// there, or will later.
 
 			int offset = (int) (instrptr - program + OPERAND());
 			//| pop rax
