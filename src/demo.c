@@ -1122,7 +1122,7 @@ main(int argc, char **argv)
 
 	// Compile the program by calling the compile function with the program
 	// and its size.
-	void(*fun)(i32 *input) = compile(program, sizeof(program));
+	void (*fun)(i32 *input) = compile(program, sizeof(program));
 
 	// And run the function passing it pointer to the input array. We don't
 	// pass the length, the compiled program doesn't need it -- it expects
