@@ -1066,7 +1066,7 @@ compile(u8 *program, size_t program_len)
 
 	// We `dasm_put` all snippets. Now we need to link and encode them. See
 	// the description of the function for more details.
-	void *code = link_and_encode(Dst);
+	void *code = our_dasm_link_and_encode(Dst);
 
 	// Here we could keep the same DASM state, call `dasm_setup` and
 	// continue with compilation of other programs, we just needed this
