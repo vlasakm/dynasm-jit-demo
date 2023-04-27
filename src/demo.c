@@ -26,9 +26,18 @@ void sys_icache_invalidate(void *start, size_t len);
 #define MAP_JIT_VALUE 0
 #endif
 
-#define Dst       ds
-#define Dst_DECL  dasm_State **ds
-#define Dst_REF   (*ds)
+typedef struct dasm_State dasm_State;
+
+typedef struct {
+	i32 *stack;
+	i32 *input;
+	dasm_State *ds;
+	void **global_labels;
+} InterpreterState;
+
+#define Dst       is
+#define Dst_DECL  InterpreterState *is
+#define Dst_REF   (is->ds)
 
 #define DASM_CHECKS
 
@@ -79,18 +88,35 @@ enum op {
 	OP_HALT,
 };
 
-static void *
-compile(u8 *program, size_t program_len)
+void
+state_init(InterpreterState *is, i32 *input)
 {
-	dasm_State *dasm_state;
-	dasm_State **ds = &dasm_state;
-	dasm_init(Dst, DASM_MAXSECTION);
-	void *our_dasm_labels[DASM_LBL__MAX];
-	dasm_setupglobal(Dst, our_dasm_labels, DASM_LBL__MAX);
 
+	*is = (InterpreterState) {
+		.stack = malloc(64 * sizeof(i32)),
+		.input = input,
+	};
+
+	dasm_init(Dst, DASM_MAXSECTION);
+	is->global_labels = malloc(DASM_LBL__MAX * sizeof(is->global_labels[0]));
+	dasm_setupglobal(Dst, is->global_labels, DASM_LBL__MAX);
+}
+
+void
+state_free(InterpreterState *is)
+{
+	dasm_free(Dst);
+	free(is->stack);
+	free(is->global_labels);
+}
+
+static void *
+compile(Dst_DECL, u8 *program, size_t program_len)
+{
 	dasm_setup(Dst, our_dasm_actions);
 	dasm_growpc(Dst, program_len);
 
+	//| .type IS, InterpreterState
 	//| .type STACK, int, r12
 	//| .type INPUT, int, rbx
 
@@ -98,11 +124,9 @@ compile(u8 *program, size_t program_len)
 	//| mov rbp, rsp
 	//| push INPUT
 	//| push STACK
-	//
-	//| mov INPUT, rdi
 	//|
-	//| sub rsp, 64 * #STACK
-	//| mov STACK, rsp
+	//| mov INPUT, IS:rdi->input
+	//| mov STACK, IS:rdi->stack
 
 	u8 *instrptr = program;
 	u8 *end = program + program_len;
@@ -202,8 +226,6 @@ compile(u8 *program, size_t program_len)
 	}
 
 	void *code = our_dasm_link_and_encode(Dst);
-
-	dasm_free(Dst);
 	return code;
 }
 
@@ -241,9 +263,14 @@ main(int argc, char **argv)
 	}
 	i32 input[] = { atoi(argv[1]), atoi(argv[2]) };
 
-	void (*fun)(i32 *input) = compile(program, sizeof(program));
+	InterpreterState is;
+	state_init(&is, input);
 
-	fun(input);
+	void (*fun)(InterpreterState *is) = compile(&is, program, sizeof(program));
+
+	fun(&is);
+
+	state_free(&is);
 
 	return 0;
 }
