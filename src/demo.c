@@ -91,13 +91,18 @@ compile(u8 *program, size_t program_len)
 	dasm_setup(Dst, our_dasm_actions);
 	dasm_growpc(Dst, program_len);
 
+	//| .type STACK, int, r12
+	//| .type INPUT, int, rbx
+
 	//| push rbp
 	//| mov rbp, rsp
-	//| push rbx
-	//| mov rbx, rdi
+	//| push INPUT
+	//| push STACK
+	//
+	//| mov INPUT, rdi
 	//|
-	//| sub rsp, 0x100
-	//| mov rdx, rsp
+	//| sub rsp, 64 * #STACK
+	//| mov STACK, rsp
 
 	u8 *instrptr = program;
 	u8 *end = program + program_len;
@@ -118,52 +123,50 @@ compile(u8 *program, size_t program_len)
 		switch (op) {
 		case OP_CONSTANT: {
 			int32_t operand = OPERAND();
-			//| mov dword [rdx], operand
-			//| add rdx, 4
+			//| mov dword STACK[0], operand
+			//| add STACK, #STACK
 			instrptr += 5; break;
 		}
 		case OP_ADD: {
-			//| mov ecx, dword [rdx - 4]
-			//| add [rdx - 8], ecx
-			//| sub rdx, 4
+			//| mov ecx, STACK[-1]
+			//| add STACK[-2], ecx
+			//| sub STACK, #STACK
 			instrptr += 1; break;
 		}
 		case OP_PRINT: {
-			//| push rdx
 			//| mov64 rdi, ((uintptr_t) "%zd\n")
-			//| mov esi, [rdx - 4]
-			//| sub rdx, 4
+			//| mov esi, STACK[-1]
+			//| sub STACK, 4
 			//| mov64 rax, ((uintptr_t) printf)
 			//| call rax
-			//| pop rdx
 			instrptr += 1; break;
 		}
 		case OP_INPUT: {
-			//| mov eax, dword [rbx]
-			//| mov dword [rdx], eax
-			//| add rdx, 4
-			//| add rbx, 4
+			//| mov eax, INPUT[0]
+			//| mov dword STACK[0], eax
+			//| add STACK, #STACK
+			//| add INPUT, #INPUT
 			instrptr += 1; break;
 		}
 		case OP_DISCARD: {
-			//| sub rdx, 4
+			//| sub STACK, #STACK
 			instrptr += 1; break;
 		}
 		case OP_GET: {
-			//| mov eax, dword [rdx - 4 - 4 * OPERAND()]
-			//| mov dword [rdx], eax
-			//| add rdx, 4
+			//| mov eax, STACK[-1 - OPERAND()]
+			//| mov STACK[0], eax
+			//| add STACK, #STACK
 			instrptr += 5; break;
 		}
 		case OP_SET: {
-			//| mov eax, dword [rdx - 4]
-			//| sub rdx, 4
-			//| mov dword [rdx - 4 - 4 * OPERAND()], eax
+			//| mov eax, STACK[-1]
+			//| sub STACK, #STACK
+			//| mov STACK[-1 - OPERAND()], eax
 			instrptr += 5; break;
 		}
 		case OP_CMP: {
-			//| mov ecx, dword [rdx - 4]
-			//| cmp [rdx - 8], ecx
+			//| mov ecx, STACK[-1]
+			//| cmp STACK[-2], ecx
 			//| jg >1
 			//| je >2
 			//| mov ecx, -1
@@ -174,20 +177,22 @@ compile(u8 *program, size_t program_len)
 			//|2:
 			//| mov ecx, 0
 			//|3:
-			//| mov [rdx - 8], ecx
-			//| sub rdx, 4
+			//| mov STACK[-2], ecx
+			//| sub STACK, #STACK
 			instrptr += 1; break;
 		}
 		case OP_JGT: {
 			int offset = (int) (instrptr - program + OPERAND());
-			//| mov eax, dword [rdx - 4]
-			//| sub rdx, 4
+			//| mov eax, STACK[-1]
+			//| sub STACK, #STACK
 			//| test rax, rax
 			//| jg => offset
 			instrptr += 5; break;
 		}
 		case OP_HALT: {
-			//| pop rbx
+			//| add rsp, 64 * #STACK
+			//| pop STACK
+			//| pop INPUT
 			//| mov rsp, rbp
 			//| pop rbp
 			//| ret
