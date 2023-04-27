@@ -894,18 +894,18 @@ compile(u8 *program, size_t program_len)
 			// values in caller saved registers, we only store our
 			// state in rbx, so we our fine.
 
-			//| mov64 rax, ((uintptr_t) printf)
 			//| mov64 rdi, ((uintptr_t) "%zd\n")
 			//| pop rsi
+			//| mov64 rax, ((uintptr_t) printf)
 			//| call rax
 
 			// The above is translated to roughly the following:
 			//
 			//     dasm_put(...,
-			//         (unsigned int)(((uintptr_t) printf)),
-			//         (unsigned int)((((uintptr_t) printf))>>32),
 			//         (unsigned int)(((uintptr_t) "%zd\n")),
 			//         (unsigned int)((((uintptr_t) "%zd\n"))>>32)
+			//         (unsigned int)(((uintptr_t) printf)),
+			//         (unsigned int)((((uintptr_t) printf))>>32),
 			//     )
 
 			instrptr += 1; break;
