@@ -6,8 +6,8 @@
 //         https://luajit.org/dynasm.html
 //
 // An indespensable resource for use of DynASM, except for the official sources
-// is the unofficial documentation by Peter Cawley and includes a tutorial and
-// a reference for the DynASM API and the x86/x86-64 instructions:
+// is the unofficial documentation by Peter Cawley, which includes a tutorial
+// and a reference for the DynASM API and the x86/x86-64 instructions:
 //
 //         https://corsix.github.io/dynasm-doc/
 //
@@ -591,7 +591,8 @@ compile(u8 *program, size_t program_len)
 	//     5. r8
 	//     6. r9
 	//
-	// The return value is expected to be in the register rax. If there are
+	// The return value is expected to be in the register rax (and rdx if
+	// the return value is small struct like 2 pointers). If there are
 	// more than 6 arguments they pushed on to the stack right-to-left. Even
 	// arguments that are smaller than 64 bits use the full registers to be
 	// passed. Small-ish structs are passed as if all the struct members
@@ -631,6 +632,15 @@ compile(u8 *program, size_t program_len)
 	// Obviously the return value register is also caller saved, but note
 	// that the callee is free to change it also in the case there is no
 	// return value ("the functions returns void").
+	//
+	// There are other subtlities to AMD64 System V ABI:
+	//
+	//  - Stack is kept aligned at 16 bytes.
+	//  - Vararg functions expect in the "al" (rax) register the
+	//    _upper bound_ of used vector registers (xmm0, etc.).
+	//
+	// I mostly ignore these below. "It works on my machine", but may lead
+	// to subtle and hard to debug issues, so beware!
 
 	// Now is a good time to decide on how and where to store the data we
 	// need. We won't need the program at runtime, since it will be
