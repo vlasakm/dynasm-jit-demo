@@ -100,3 +100,50 @@ Starting with JITs:
  - [Eli Bendersky: Adventures in JIT compilation: Part 1 - an interpreter](https://eli.thegreenplace.net/2017/adventures-in-jit-compilation-part-1-an-interpreter/)
  - [Eli Bendersky: Adventures in JIT compilation: Part 2 - an x64 JIT](https://eli.thegreenplace.net/2017/adventures-in-jit-compilation-part-2-an-x64-jit/)
  - [Spencer Tipping: How to write a JIT compiler](https://github.com/spencertipping/jit-tutorial)
+
+GDB:
+
+ - [Greg Law: Give me 15 minutes & I'll change your view of GDB](https://www.youtube.com/watch?v=PorfLSr3DDI)
+ - [Beej's Quick Guide to GDB](https://beej.us/guide/bggdb/)
+ - [The GDB developer's GNU Debugger tutorial, Part 1: Getting started with the debugger](https://developers.redhat.com/blog/2021/04/30/the-gdb-developers-gnu-debugger-tutorial-part-1-getting-started-with-the-debugger)
+ - [Chris Wellons: Assertions should be more debugger-oriented](https://nullprogram.com/blog/2022/06/26/)
+
+Useful things to have in GDB config files:
+
+```
+# ~/.config/gdb/gdbearlyinit
+
+# Don't show license and help information on each startup
+set startup-quietly on
+```
+
+```
+# ~/.config/gdb/gdbinit
+
+# Don't ask for confirmations.
+set confirm off
+
+# Don't be verbose.
+set verbose off
+
+# Don't show thread events.
+set print thread-events off
+
+# Don't stop when more than one screen is output.
+set pagination off
+
+# Enable pretty prints.
+set print pretty on
+
+# Demangle C++ names.
+set print asm-demangle on
+
+# Save history.
+set history save on
+set history filename ~/.local/share/gdb/history
+
+# Use Intel syntax.
+set disassembly-flavor intel
+
+See also: https://www.reddit.com/r/C_Programming/comments/12xhiie/how_do_you_use_gdb_without_the_tui_are_there/jhiznhj/
+```
