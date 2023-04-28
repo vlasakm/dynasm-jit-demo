@@ -1024,7 +1024,7 @@ compile(u8 *program, size_t program_len)
 			//|3:
 			instrptr += 1; break;
 		}
-		case OP_JGT:
+		case OP_JGT: {
 			// Conditional branch based on whether the top of the
 			// stack is a positive number. We set the flags based on
 			// the top of the stack by popping it into a register
@@ -1043,7 +1043,8 @@ compile(u8 *program, size_t program_len)
 			//| jg => offset
 
 			instrptr += 5; break;
-		case OP_HALT:
+		}
+		case OP_HALT: {
 			// When the code compiled by us encounters this
 			// instruction, it should halt the execution, since we
 			// structure the code as a function, here is the right
@@ -1061,6 +1062,7 @@ compile(u8 *program, size_t program_len)
 			//| ret
 
 			instrptr += 1; break;
+		}
 		}
 	}
 
